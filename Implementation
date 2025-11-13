@@ -1,0 +1,50 @@
+Steps to implement the project:
+
+1. Go to Spring Initialzr, select java, maven, choose version, give the name of project.
+2. Select the required dependencies(Spring Web, Spring Data JPA, MySQL Driver, Validation).
+
+3. Setup Instructions:
+a) Create Database
+
+Open MySQL and run:
+
+CREATE DATABASE expense_tracker;
+
+b) Create MySQL User
+
+Run:
+
+CREATE USER 'appuser'@'localhost' IDENTIFIED BY 'AppPass123';
+GRANT ALL PRIVILEGES ON expense_tracker.* TO 'appuser'@'localhost';
+
+CREATE USER 'Your_Username'@'127.0.0.1' IDENTIFIED BY 'Your_Password';
+GRANT ALL PRIVILEGES ON expense_tracker.* TO 'Your_Username'@'127.0.0.1';
+
+FLUSH PRIVILEGES;
+
+c) application.properties
+
+spring.datasource.url=jdbc:mysql://localhost:3306/expense_tracker
+spring.datasource.username=Your_Username
+spring.datasource.password=Your_Password
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+
+4. Create the required classes and write the code.
+5. Run the main class and open the url on server.
+6.Test the API with Postman, by using CRUD opeations and view the result.
+
+Conclusion:
+This project is a clean and simple example demonstrating:
+
+1. Spring Boot
+2. MySQL
+3. Spring Data JPA
+4. Hibernate
+5. CRUD operations
+6. Postman testing
+
+
+
