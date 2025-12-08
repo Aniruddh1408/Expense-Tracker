@@ -2,214 +2,683 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Expense Tracker</title>
+    <title>Expense Tracker Dashboard</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 10px;
+        :root {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color-scheme: light dark;
         }
-        h1, h2 {
-            text-align: center;
-        }
-        form {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
-        label {
-            display: block;
-            margin-top: 8px;
-        }
-        input, select, textarea, button {
-            padding: 6px;
-            margin-top: 4px;
-            width: 100%;
+
+        * {
             box-sizing: border-box;
         }
-        button {
-            margin-top: 12px;
-            cursor: pointer;
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #e5e7eb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
         }
+
+        .app-container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 24px;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 18px 35px rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title span.logo-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #22c55e;
+        }
+
+        .header-subtitle {
+            margin-top: 4px;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr);
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        h2 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .section-sub {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-size: 13px;
+            color: #e5e7eb;
+        }
+
+        input, select, textarea {
+            margin-top: 4px;
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid #4b5563;
+            background: #020617;
+            color: #e5e7eb;
+            font-size: 13px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid #22c55e;
+            border-color: transparent;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 40px;
+            max-height: 90px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border-radius: 999px;
+            border: none;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+        }
+
+        button:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #052e16;
+            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.35);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .btn-secondary {
+            background: #020617;
+            color: #e5e7eb;
+            border: 1px solid #4b5563;
+        }
+
+        .btn-secondary:hover {
+            background: #020617;
+            border-color: #9ca3af;
+        }
+
+        .btn-small {
+            padding: 4px 10px;
+            font-size: 11px;
+            border-radius: 999px;
+        }
+
+        .message {
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        .message.error {
+            color: #fecaca;
+        }
+
+        .message.success {
+            color: #bbf7d0;
+        }
+
+        .summary-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .summary-card {
+            flex: 1 1 140px;
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.15), #020617);
+            border: 1px solid rgba(55, 65, 81, 0.9);
+        }
+
+        .summary-label {
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            margin-bottom: 2px;
+        }
+
+        .summary-main {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .summary-extra {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 900px) {
+            .filter-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 650px) {
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 6px;
+            border-radius: 10px;
+            overflow: hidden;
         }
+
         th, td {
-            border: 1px solid #ddd;
-            padding: 6px;
+            border-bottom: 1px solid #1f2937;
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+
+        th {
+            background: #020617;
+            font-weight: 600;
+            color: #9ca3af;
             text-align: left;
         }
-        th {
-            background-color: #f2f2f2;
+
+        tr:nth-child(even) td {
+            background: rgba(15, 23, 42, 0.9);
         }
-        .actions button {
-            width: auto;
-            padding: 4px 8px;
-            margin-right: 4px;
+
+        tr:nth-child(odd) td {
+            background: rgba(15, 23, 42, 0.7);
         }
-        .message {
-            margin-top: 10px;
-            font-size: 0.9rem;
+
+        .actions-cell {
+            white-space: nowrap;
         }
-        .message.error {
-            color: #b00020;
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(75, 85, 99, 0.9);
+            color: #e5e7eb;
         }
-        .message.success {
-            color: #007700;
+
+        .category-pill {
+            border-radius: 999px;
+            padding: 3px 10px;
+            font-size: 11px;
+            background: rgba(37, 99, 235, 0.18);
+            color: #bfdbfe;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .muted {
+            color: #9ca3af;
         }
     </style>
 </head>
 <body>
-<h1>Expense Tracker</h1>
+<div class="app-container">
+    <div class="card">
+        <header class="header">
+            <div class="header-title">
+                <span class="logo-dot"></span>
+                Expense Tracker
+            </div>
+            <div class="header-subtitle">
+                Simple personal finance dashboard to add, view, filter, and edit expenses.
+            </div>
+        </header>
 
-<h2>Add Expense</h2>
-<form id="expense-form">
-    <label>
-        Title:
-        <input type="text" id="title" required>
-    </label>
-    <label>
-        Amount:
-        <input type="number" id="amount" step="0.01" min="0" required>
-    </label>
-    <label>
-        Date:
-        <input type="date" id="date" required>
-    </label>
-    <label>
-        Category:
-        <input type="text" id="category" required>
-    </label>
-    <label>
-        Note:
-        <textarea id="note" rows="2"></textarea>
-    </label>
-    <button type="submit">Save Expense</button>
-    <div id="form-message" class="message"></div>
-</form>
+        <div class="layout-grid">
+            <!-- LEFT: ADD / EDIT FORM -->
+            <section>
+                <h2 id="form-heading">Add Expense</h2>
+                <div class="section-sub">
+                    Enter a new expense.
+                </div>
+                <form id="expense-form">
+                    <label>
+                        Title
+                        <input type="text" id="title" placeholder="e.g. Lunch, Uber, Groceries" required>
+                    </label>
+                    <label>
+                        Amount
+                        <input type="number" id="amount" step="0.01" min="0" placeholder="e.g. 250.00" required>
+                    </label>
+                    <label>
+                        Date
+                        <!-- calendar + typing both supported -->
+                        <input type="date" id="date" required>
+                    </label>
+                    <label>
+                        Category
+                        <input type="text" id="category" placeholder="e.g. Food, Travel, Bills" required>
+                    </label>
+                    <label>
+                        Note (optional)
+                        <textarea id="note" rows="2" placeholder="Short note like 'Office lunch with team'"></textarea>
+                    </label>
+                    <div class="button-row">
+                        <button type="submit" id="form-submit-btn" class="btn-primary">
+                            Save Expense
+                        </button>
+                        <button type="button" id="cancel-edit-btn" class="btn-secondary" style="display: none;">
+                            Cancel Edit
+                        </button>
+                    </div>
+                    <div id="form-message" class="message"></div>
+                </form>
+            </section>
 
-<h2>All Expenses</h2>
-<table id="expenses-table">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Title</th>
-        <th>Amount</th>
-        <th>Date</th>
-        <th>Category</th>
-        <th>Note</th>
-        <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!-- Rows will be filled by JavaScript -->
-    </tbody>
-</table>
+            <!-- RIGHT: SUMMARY + FILTERS + TABLE -->
+            <section>
+                <h2>Dashboard</h2>
+                <div class="section-sub">
+                    See totals, filter by date or category, and manage existing expenses.
+                </div>
+
+                <!-- SUMMARY -->
+                <div class="summary-bar">
+                    <div class="summary-card">
+                        <div class="summary-label">Total Spent</div>
+                        <div class="summary-main" id="summary-total">₹0.00</div>
+                        <div class="summary-extra" id="summary-filter-label">All expenses</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Number of Records</div>
+                        <div class="summary-main" id="summary-count">0</div>
+                        <div class="summary-extra">Based on current filters</div>
+                    </div>
+                </div>
+
+                <!-- FILTERS -->
+                <form id="filter-form">
+                    <div class="filter-row">
+                        <div>
+                            <label>
+                                From Date
+                                <input type="date" id="filter-from-date">
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                To Date
+                                <input type="date" id="filter-to-date">
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                Category (optional)
+                                <input type="text" id="filter-category" placeholder="e.g. Food">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button type="submit" class="btn-secondary">
+                            Apply Filters
+                        </button>
+                        <button type="button" id="clear-filters-btn" class="btn-secondary btn-small">
+                            Clear
+                        </button>
+                    </div>
+                </form>
+
+                <!-- TABLE -->
+                <table id="expenses-table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th class="text-right">Amount</th>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Note</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </div>
+</div>
 
 <script>
-    const API_BASE = '/api/expenses'; // same backend you already built
-
+    const API_BASE = '/api/expenses'; // backend base URL
     const form = document.getElementById('expense-form');
-    const msg = document.getElementById('form-message');
+    const formMsg = document.getElementById('form-message');
+    const submitBtn = document.getElementById('form-submit-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const formHeading = document.getElementById('form-heading');
     const tableBody = document.querySelector('#expenses-table tbody');
 
-    // Load expenses when page opens
-    window.addEventListener('DOMContentLoaded', loadExpenses);
+    const summaryTotal = document.getElementById('summary-total');
+    const summaryCount = document.getElementById('summary-count');
+    const summaryFilterLabel = document.getElementById('summary-filter-label');
 
-    // Handle form submit
+    const filterForm = document.getElementById('filter-form');
+    const filterFromDate = document.getElementById('filter-from-date');
+    const filterToDate = document.getElementById('filter-to-date');
+    const filterCategory = document.getElementById('filter-category');
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+
+    let currentEditingId = null;
+    let lastLoadedExpenses = [];
+
+    // On page load
+    window.addEventListener('DOMContentLoaded', () => {
+        // Optional: set default date in form to today
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById('date').value = today;
+        loadExpenses();
+    });
+
+    // Handle Add / Update form submit
     form.addEventListener('submit', function (e) {
-        e.preventDefault(); // stop normal form POST
+        e.preventDefault();
 
         const expense = {
             title: document.getElementById('title').value.trim(),
             amount: parseFloat(document.getElementById('amount').value),
-            date: document.getElementById('date').value, // yyyy-MM-dd (ISO) from input[type=date]
+            date: document.getElementById('date').value, // yyyy-MM-dd from <input type="date">
             category: document.getElementById('category').value.trim(),
             note: document.getElementById('note').value.trim()
         };
 
-        msg.textContent = '';
-        msg.className = 'message';
+        formMsg.textContent = '';
+        formMsg.className = 'message';
 
-        fetch(API_BASE, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+        if (!expense.title || isNaN(expense.amount) || !expense.date || !expense.category) {
+            formMsg.textContent = 'Please fill all required fields with valid values.';
+            formMsg.classList.add('error');
+            return;
+        }
+
+        const isEditMode = currentEditingId !== null;
+        const url = isEditMode ? `${API_BASE}/${currentEditingId}` : API_BASE;
+        const method = isEditMode ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(expense)
         })
             .then(response => {
                 if (!response.ok) {
-                    return response.json().then(err => {
-                        throw err;
+                    return response.json().catch(() => null).then(err => {
+                        throw err || { message: 'Unknown error' };
                     });
                 }
                 return response.json();
             })
             .then(saved => {
-                msg.textContent = 'Expense saved successfully (ID: ' + saved.id + ').';
-                msg.classList.add('success');
-                form.reset();
-                loadExpenses(); // refresh table
+                formMsg.textContent = isEditMode
+                    ? `Expense #${saved.id} updated successfully.`
+                    : `Expense saved successfully (ID: ${saved.id}).`;
+                formMsg.classList.add('success');
+                resetFormMode();
+                loadExpenses();
             })
             .catch(error => {
                 console.error(error);
-                msg.textContent = 'Failed to save expense. Check data & try again.';
-                msg.classList.add('error');
+                formMsg.textContent = 'Failed to save expense. Please check the data and try again.';
+                formMsg.classList.add('error');
             });
     });
 
-    // Load all expenses and render table
+    cancelEditBtn.addEventListener('click', () => {
+        resetFormMode();
+    });
+
+    // Load expenses with filters applied
+    filterForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        loadExpenses();
+    });
+
+    clearFiltersBtn.addEventListener('click', () => {
+        filterFromDate.value = '';
+        filterToDate.value = '';
+        filterCategory.value = '';
+        loadExpenses();
+    });
+
     function loadExpenses() {
-        fetch(API_BASE)
+        let url = API_BASE;
+        const from = filterFromDate.value;
+        const to = filterToDate.value;
+        const category = filterCategory.value.trim();
+
+        let filterLabel = 'All expenses';
+
+        if (from || to) {
+            const start = from || to;
+            const end = to || from;
+            url = `${API_BASE}/by-date?start=${start}&end=${end}`;
+            filterLabel = `From ${start} to ${end}`;
+            if (category) {
+                filterLabel += ` · Category: ${category}`;
+            }
+        } else if (category) {
+            url = `${API_BASE}/by-category?category=${encodeURIComponent(category)}`;
+            filterLabel = `Category: ${category}`;
+        }
+
+        fetch(url)
             .then(response => response.json())
             .then(data => {
-                tableBody.innerHTML = '';
-                data.forEach(exp => {
-                    const tr = document.createElement('tr');
+                // If we filtered by date via backend, but also have category,
+                // apply category filter on top (in case backend endpoint is not combined).
+                if ((from || to) && category) {
+                    data = data.filter(e =>
+                        (e.category || '').toLowerCase() === category.toLowerCase()
+                    );
+                }
 
-                    tr.innerHTML = `
-                        <td>${exp.id}</td>
-                        <td>${exp.title}</td>
-                        <td>${exp.amount}</td>
-                        <td>${exp.date}</td>
-                        <td>${exp.category}</td>
-                        <td>${exp.note || ''}</td>
-                        <td class="actions">
-                            <button onclick="deleteExpense(${exp.id})">Delete</button>
-                        </td>
-                    `;
-
-                    tableBody.appendChild(tr);
-                });
+                lastLoadedExpenses = data;
+                renderTable(data);
+                updateSummary(data, filterLabel);
             })
             .catch(err => {
                 console.error(err);
             });
     }
 
-    // Delete an expense
-    function deleteExpense(id) {
-        if (!confirm('Delete expense with ID ' + id + '?')) return;
+    function renderTable(expenses) {
+        tableBody.innerHTML = '';
 
-        fetch(API_BASE + '/' + id, {
-            method: 'DELETE'
-        })
+        if (!expenses || expenses.length === 0) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 7;
+            td.className = 'muted';
+            td.textContent = 'No expenses found for the current filters.';
+            tr.appendChild(td);
+            tableBody.appendChild(tr);
+            return;
+        }
+
+        expenses.forEach(exp => {
+            const tr = document.createElement('tr');
+
+            const dateText = exp.date || '';
+            const noteText = exp.note || '';
+
+            tr.innerHTML = `
+                <td>${exp.id}</td>
+                <td>${escapeHtml(exp.title || '')}</td>
+                <td class="text-right">₹${Number(exp.amount || 0).toFixed(2)}</td>
+                <td>${dateText}</td>
+                <td><span class="category-pill">${escapeHtml(exp.category || '')}</span></td>
+                <td class="muted">${escapeHtml(noteText)}</td>
+                <td class="actions-cell">
+                    <button class="btn-secondary btn-small" onclick="startEdit(${exp.id})">Edit</button>
+                    <button class="btn-secondary btn-small" onclick="deleteExpense(${exp.id})">Delete</button>
+                </td>
+            `;
+
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function updateSummary(expenses, filterLabel) {
+        let total = 0;
+        expenses.forEach(e => {
+            total += Number(e.amount || 0);
+        });
+
+        summaryTotal.textContent = `₹${total.toFixed(2)}`;
+        summaryCount.textContent = expenses.length.toString();
+        summaryFilterLabel.textContent = filterLabel;
+    }
+
+    function startEdit(id) {
+        const exp = lastLoadedExpenses.find(e => e.id === id);
+        if (!exp) return;
+
+        currentEditingId = exp.id;
+        formHeading.textContent = `Edit Expense #${exp.id}`;
+        submitBtn.textContent = 'Update Expense';
+        cancelEditBtn.style.display = 'inline-flex';
+
+        document.getElementById('title').value = exp.title || '';
+        document.getElementById('amount').value = exp.amount != null ? exp.amount : '';
+        document.getElementById('date').value = exp.date || '';
+        document.getElementById('category').value = exp.category || '';
+        document.getElementById('note').value = exp.note || '';
+
+        formMsg.textContent = '';
+        formMsg.className = 'message';
+    }
+
+    function resetFormMode() {
+        currentEditingId = null;
+        form.reset();
+        // reset date to today again
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById('date').value = today;
+
+        formHeading.textContent = 'Add Expense';
+        submitBtn.textContent = 'Save Expense';
+        cancelEditBtn.style.display = 'none';
+        formMsg.textContent = '';
+        formMsg.className = 'message';
+    }
+
+    function deleteExpense(id) {
+        if (!confirm(`Delete expense with ID ${id}?`)) return;
+
+        fetch(`${API_BASE}/${id}`, { method: 'DELETE' })
             .then(response => {
                 if (response.ok) {
                     loadExpenses();
                 } else {
-                    alert('Failed to delete expense');
+                    alert('Failed to delete expense.');
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert('Error deleting expense');
+                alert('Error deleting expense.');
             });
+    }
+
+    // small helper to avoid HTML injection
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 </script>
 </body>
