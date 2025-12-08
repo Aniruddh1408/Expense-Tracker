@@ -188,14 +188,19 @@
         }
 
         .summary-bar {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
             margin-bottom: 10px;
         }
 
+        @media (max-width: 900px) {
+            .summary-bar {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
         .summary-card {
-            flex: 1 1 140px;
             border-radius: 14px;
             padding: 10px 12px;
             background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.15), #020617);
@@ -274,17 +279,6 @@
             white-space: nowrap;
         }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-size: 10px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(75, 85, 99, 0.9);
-            color: #e5e7eb;
-        }
-
         .category-pill {
             border-radius: 999px;
             padding: 3px 10px;
@@ -300,6 +294,55 @@
 
         .muted {
             color: #9ca3af;
+        }
+
+        .budget-section {
+            margin-top: 14px;
+        }
+
+        .budget-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .budget-pill {
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 11px;
+            border: 1px solid #4b5563;
+            background: #020617;
+            display: inline-flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+
+        .budget-pill span.label {
+            font-weight: 600;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        .budget-pill.safe {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3);
+        }
+
+        .budget-pill.warning {
+            border-color: #eab308;
+            box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.3);
+        }
+
+        .budget-pill.exceeded {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35);
+        }
+
+        .budget-pill .status-text {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
     </style>
 </head>
@@ -334,7 +377,6 @@
                     </label>
                     <label>
                         Date
-                        <!-- calendar + typing both supported -->
                         <input type="date" id="date" required>
                     </label>
                     <label>
@@ -364,7 +406,7 @@
                     See totals, filter by date or category, and manage existing expenses.
                 </div>
 
-                <!-- SUMMARY -->
+                <!-- SUMMARY (now 4 cards) -->
                 <div class="summary-bar">
                     <div class="summary-card">
                         <div class="summary-label">Total Spent</div>
@@ -375,6 +417,16 @@
                         <div class="summary-label">Number of Records</div>
                         <div class="summary-main" id="summary-count">0</div>
                         <div class="summary-extra">Based on current filters</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Avg per Expense</div>
+                        <div class="summary-main" id="summary-avg-exp">₹0.00</div>
+                        <div class="summary-extra">Mean of all visible expenses</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Top Category</div>
+                        <div class="summary-main" id="summary-top-cat">—</div>
+                        <div class="summary-extra">Highest total spending</div>
                     </div>
                 </div>
 
@@ -410,6 +462,16 @@
                     </div>
                 </form>
 
+                <!-- BUDGET STATUS -->
+                <div class="budget-section">
+                    <div class="section-sub">
+                        Budget overview by category.
+                    </div>
+                    <div id="budget-list" class="budget-list">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
                 <!-- TABLE -->
                 <table id="expenses-table">
                     <thead>
@@ -433,7 +495,8 @@
 </div>
 
 <script>
-    const API_BASE = '/api/expenses'; // backend base URL
+    const API_BASE = '/api/expenses';
+
     const form = document.getElementById('expense-form');
     const formMsg = document.getElementById('form-message');
     const submitBtn = document.getElementById('form-submit-btn');
@@ -444,6 +507,8 @@
     const summaryTotal = document.getElementById('summary-total');
     const summaryCount = document.getElementById('summary-count');
     const summaryFilterLabel = document.getElementById('summary-filter-label');
+    const summaryAvgExp = document.getElementById('summary-avg-exp');
+    const summaryTopCat = document.getElementById('summary-top-cat');
 
     const filterForm = document.getElementById('filter-form');
     const filterFromDate = document.getElementById('filter-from-date');
@@ -451,25 +516,26 @@
     const filterCategory = document.getElementById('filter-category');
     const clearFiltersBtn = document.getElementById('clear-filters-btn');
 
+    const budgetList = document.getElementById('budget-list');
+
     let currentEditingId = null;
     let lastLoadedExpenses = [];
 
     // On page load
     window.addEventListener('DOMContentLoaded', () => {
-        // Optional: set default date in form to today
         const today = new Date().toISOString().slice(0, 10);
         document.getElementById('date').value = today;
-        loadExpenses();
+        loadExpenses(); // will also load summary
     });
 
-    // Handle Add / Update form submit
+    // Handle Add / Update
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
         const expense = {
             title: document.getElementById('title').value.trim(),
             amount: parseFloat(document.getElementById('amount').value),
-            date: document.getElementById('date').value, // yyyy-MM-dd from <input type="date">
+            date: document.getElementById('date').value,
             category: document.getElementById('category').value.trim(),
             note: document.getElementById('note').value.trim()
         };
@@ -506,7 +572,7 @@
                     : `Expense saved successfully (ID: ${saved.id}).`;
                 formMsg.classList.add('success');
                 resetFormMode();
-                loadExpenses();
+                loadExpenses(); // reload table + summary
             })
             .catch(error => {
                 console.error(error);
@@ -519,7 +585,7 @@
         resetFormMode();
     });
 
-    // Load expenses with filters applied
+    // Filters
     filterForm.addEventListener('submit', function (e) {
         e.preventDefault();
         loadExpenses();
@@ -533,40 +599,72 @@
     });
 
     function loadExpenses() {
-        let url = API_BASE;
         const from = filterFromDate.value;
         const to = filterToDate.value;
         const category = filterCategory.value.trim();
 
+        let expensesUrl = API_BASE;
         let filterLabel = 'All expenses';
+        let start = null;
+        let end = null;
 
         if (from || to) {
-            const start = from || to;
-            const end = to || from;
-            url = `${API_BASE}/by-date?start=${start}&end=${end}`;
+            start = from || to;
+            end = to || from;
+            expensesUrl = `${API_BASE}/by-date?start=${start}&end=${end}`;
             filterLabel = `From ${start} to ${end}`;
             if (category) {
                 filterLabel += ` · Category: ${category}`;
             }
         } else if (category) {
-            url = `${API_BASE}/by-category?category=${encodeURIComponent(category)}`;
+            expensesUrl = `${API_BASE}/by-category?category=${encodeURIComponent(category)}`;
             filterLabel = `Category: ${category}`;
         }
 
-        fetch(url)
+        fetch(expensesUrl)
             .then(response => response.json())
             .then(data => {
-                // If we filtered by date via backend, but also have category,
-                // apply category filter on top (in case backend endpoint is not combined).
-                if ((from || to) && category) {
-                    data = data.filter(e =>
-                        (e.category || '').toLowerCase() === category.toLowerCase()
-                    );
-                }
-
                 lastLoadedExpenses = data;
                 renderTable(data);
-                updateSummary(data, filterLabel);
+                // load smart summary (uses /summary endpoint)
+                loadSummary(start, end, category, filterLabel);
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    }
+
+    function loadSummary(start, end, category, filterLabel) {
+        const params = new URLSearchParams();
+        if (start && end) {
+            params.append('start', start);
+            params.append('end', end);
+        }
+        if (category) {
+            params.append('category', category);
+        }
+
+        const url = params.toString()
+            ? `${API_BASE}/summary?${params.toString()}`
+            : `${API_BASE}/summary`;
+
+        fetch(url)
+            .then(r => r.json())
+            .then(summary => {
+                // main numbers
+                summaryTotal.textContent = `₹${Number(summary.totalAmount || 0).toFixed(2)}`;
+                summaryCount.textContent = (summary.recordCount || 0).toString();
+                summaryFilterLabel.textContent = filterLabel;
+
+                if (summary.averagePerExpense != null) {
+                    summaryAvgExp.textContent = `₹${Number(summary.averagePerExpense).toFixed(2)}`;
+                } else {
+                    summaryAvgExp.textContent = '—';
+                }
+
+                summaryTopCat.textContent = summary.topCategory || '—';
+
+                renderBudgetStatuses(summary.budgetStatuses || []);
             })
             .catch(err => {
                 console.error(err);
@@ -610,15 +708,32 @@
         });
     }
 
-    function updateSummary(expenses, filterLabel) {
-        let total = 0;
-        expenses.forEach(e => {
-            total += Number(e.amount || 0);
-        });
+    function renderBudgetStatuses(budgets) {
+        budgetList.innerHTML = '';
 
-        summaryTotal.textContent = `₹${total.toFixed(2)}`;
-        summaryCount.textContent = expenses.length.toString();
-        summaryFilterLabel.textContent = filterLabel;
+        if (!budgets || budgets.length === 0) {
+            const span = document.createElement('span');
+            span.className = 'muted';
+            span.textContent = 'No budgets configured for these filters.';
+            budgetList.appendChild(span);
+            return;
+        }
+
+        budgets.forEach(b => {
+            const div = document.createElement('div');
+
+            let statusClass = 'safe';
+            if (b.status === 'EXCEEDED') statusClass = 'exceeded';
+            else if (b.status === 'WARNING') statusClass = 'warning';
+
+            div.className = `budget-pill ${statusClass}`;
+            div.innerHTML = `
+                <span class="label">${escapeHtml(b.category)}</span>
+                <span class="status-text">${b.status}</span>
+                <span class="muted">Spent: ₹${Number(b.spent || 0).toFixed(2)} / Limit: ₹${Number(b.limit || 0).toFixed(2)}</span>
+            `;
+            budgetList.appendChild(div);
+        });
     }
 
     function startEdit(id) {
@@ -643,7 +758,6 @@
     function resetFormMode() {
         currentEditingId = null;
         form.reset();
-        // reset date to today again
         const today = new Date().toISOString().slice(0, 10);
         document.getElementById('date').value = today;
 
@@ -671,7 +785,6 @@
             });
     }
 
-    // small helper to avoid HTML injection
     function escapeHtml(str) {
         return String(str)
             .replace(/&/g, "&amp;")
