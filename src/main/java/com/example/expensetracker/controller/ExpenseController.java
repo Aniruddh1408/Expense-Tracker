@@ -1,6 +1,7 @@
 package com.example.expensetracker.controller;
 
 import com.example.expensetracker.model.Expense;
+import com.example.expensetracker.dto.DashboardSummary;
 import com.example.expensetracker.service.ExpenseService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -37,6 +38,24 @@ public class ExpenseController {
     public ResponseEntity<List<Expense>> listAll() {
         return ResponseEntity.ok(service.getAllExpenses());
     }
+
+    @GetMapping("/summary")
+    public ResponseEntity<DashboardSummary> getSummary(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate start,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate end,
+
+            @RequestParam(required = false)
+            String category
+    ) {
+        DashboardSummary summary = service.getDashboardSummary(start, end, category);
+        return ResponseEntity.ok(summary);
+    }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<Expense> update(@PathVariable Long id, @Valid @RequestBody Expense expense) {
