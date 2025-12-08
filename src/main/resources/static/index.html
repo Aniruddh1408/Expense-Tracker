@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Expense Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 10px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        label {
+            display: block;
+            margin-top: 8px;
+        }
+        input, select, textarea, button {
+            padding: 6px;
+            margin-top: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            margin-top: 12px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .actions button {
+            width: auto;
+            padding: 4px 8px;
+            margin-right: 4px;
+        }
+        .message {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .message.error {
+            color: #b00020;
+        }
+        .message.success {
+            color: #007700;
+        }
+    </style>
+</head>
+<body>
+<h1>Expense Tracker</h1>
+
+<h2>Add Expense</h2>
+<form id="expense-form">
+    <label>
+        Title:
+        <input type="text" id="title" required>
+    </label>
+    <label>
+        Amount:
+        <input type="number" id="amount" step="0.01" min="0" required>
+    </label>
+    <label>
+        Date:
+        <input type="date" id="date" required>
+    </label>
+    <label>
+        Category:
+        <input type="text" id="category" required>
+    </label>
+    <label>
+        Note:
+        <textarea id="note" rows="2"></textarea>
+    </label>
+    <button type="submit">Save Expense</button>
+    <div id="form-message" class="message"></div>
+</form>
+
+<h2>All Expenses</h2>
+<table id="expenses-table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Category</th>
+        <th>Note</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Rows will be filled by JavaScript -->
+    </tbody>
+</table>
+
+<script>
+    const API_BASE = '/api/expenses'; // same backend you already built
+
+    const form = document.getElementById('expense-form');
+    const msg = document.getElementById('form-message');
+    const tableBody = document.querySelector('#expenses-table tbody');
+
+    // Load expenses when page opens
+    window.addEventListener('DOMContentLoaded', loadExpenses);
+
+    // Handle form submit
+    form.addEventListener('submit', function (e) {
+        e.preventDefault(); // stop normal form POST
+
+        const expense = {
+            title: document.getElementById('title').value.trim(),
+            amount: parseFloat(document.getElementById('amount').value),
+            date: document.getElementById('date').value, // yyyy-MM-dd (ISO) from input[type=date]
+            category: document.getElementById('category').value.trim(),
+            note: document.getElementById('note').value.trim()
+        };
+
+        msg.textContent = '';
+        msg.className = 'message';
+
+        fetch(API_BASE, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(expense)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw err;
+                    });
+                }
+                return response.json();
+            })
+            .then(saved => {
+                msg.textContent = 'Expense saved successfully (ID: ' + saved.id + ').';
+                msg.classList.add('success');
+                form.reset();
+                loadExpenses(); // refresh table
+            })
+            .catch(error => {
+                console.error(error);
+                msg.textContent = 'Failed to save expense. Check data & try again.';
+                msg.classList.add('error');
+            });
+    });
+
+    // Load all expenses and render table
+    function loadExpenses() {
+        fetch(API_BASE)
+            .then(response => response.json())
+            .then(data => {
+                tableBody.innerHTML = '';
+                data.forEach(exp => {
+                    const tr = document.createElement('tr');
+
+                    tr.innerHTML = `
+                        <td>${exp.id}</td>
+                        <td>${exp.title}</td>
+                        <td>${exp.amount}</td>
+                        <td>${exp.date}</td>
+                        <td>${exp.category}</td>
+                        <td>${exp.note || ''}</td>
+                        <td class="actions">
+                            <button onclick="deleteExpense(${exp.id})">Delete</button>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    }
+
+    // Delete an expense
+    function deleteExpense(id) {
+        if (!confirm('Delete expense with ID ' + id + '?')) return;
+
+        fetch(API_BASE + '/' + id, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    loadExpenses();
+                } else {
+                    alert('Failed to delete expense');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error deleting expense');
+            });
+    }
+</script>
+</body>
+</html>
